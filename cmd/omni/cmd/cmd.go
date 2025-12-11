@@ -588,6 +588,13 @@ func defineLogsFlags() {
 		"enable Stripe machine usage reporting",
 	)
 
+	rootCmd.Flags().Uint32Var(
+		&cmdConfig.Logs.Stripe.MinCommit,
+		"stripe-minimum-commit",
+		cmdConfig.Logs.Stripe.MinCommit,
+		"Minimum number of machines to report to Stripe for the given account",
+	)
+
 	// keep the old flags for backwards-compatibility
 	{
 		rootCmd.Flags().BoolVar(&cmdConfig.Logs.Machine.Storage.Enabled, "log-storage-enabled", cmdConfig.Logs.Machine.Storage.Enabled, "enable machine log storage")
