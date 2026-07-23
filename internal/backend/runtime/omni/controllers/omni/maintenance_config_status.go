@@ -90,8 +90,8 @@ func (c maintenanceClient) ApplyConfiguration(ctx context.Context, req *machine.
 type MaintenanceConfigStatusController = qtransform.QController[*siderolinkres.Link, *omni.MaintenanceConfigStatus]
 
 // NewMaintenanceConfigStatusController initializes MaintenanceConfigStatusController.
-func NewMaintenanceConfigStatusController(maintenanceClientFactory MaintenanceClientFactory, eventSinkPort, logServerPort int, registries omnicfg.Registries) *MaintenanceConfigStatusController {
-	helper := newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory, eventSinkPort, logServerPort, registries)
+func NewMaintenanceConfigStatusController(maintenanceClientFactory MaintenanceClientFactory, eventSinkPort, logServerPort int, registries omnicfg.Registries, tokenSource imagefactoryauth.TokenSource) *MaintenanceConfigStatusController {
+	helper := newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory, eventSinkPort, logServerPort, registries, tokenSource)
 
 	return qtransform.NewQController(
 		qtransform.Settings[*siderolinkres.Link, *omni.MaintenanceConfigStatus]{
@@ -136,7 +136,7 @@ type maintenanceConfigStatusControllerHelper struct {
 	maintenanceClientFactory  MaintenanceClientFactory
 }
 
-func newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory MaintenanceClientFactory, eventSinkPort, logServerPort int, registries omnicfg.Registries,
+func newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory MaintenanceClientFactory, eventSinkPort, logServerPort int, registries omnicfg.Registries, tokenSource imagefactoryauth.TokenSource,
 ) *maintenanceConfigStatusControllerHelper {
 	buildPatch := func(extraDocs ...talosconfig.Document) (maintenanceBasePatch, error) {
 		cfg, err := siderolink.NewJoinOptions(
@@ -165,8 +165,14 @@ func newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory Mainten
 		return buildPatch()
 	})
 
-	patchWithRegistryAuth := sync.OnceValues(func() (maintenanceBasePatch, error) {
-		authDoc, err := imagefactoryauth.BuildDoc(registries)
+	// buildPatchWithRegistryAuth builds a maintenance config patch that includes registry
+	// auth credentials. When a token source is present (Auth0), the token is fetched on
+	// each call so that the embedded credential is always fresh and the hash-based change
+	// detection in the transform loop will trigger a re-apply when the token rotates.
+	// For static credentials the result is stable across calls, but we still compute it
+	// dynamically to keep the logic uniform.
+	buildPatchWithRegistryAuth := func() (maintenanceBasePatch, error) {
+		authDoc, err := imagefactoryauth.BuildDoc(registries, tokenSource)
 		if err != nil {
 			return maintenanceBasePatch{}, fmt.Errorf("error building registry auth doc: %w", err)
 		}
@@ -176,7 +182,16 @@ func newMaintenanceConfigStatusControllerHelper(maintenanceClientFactory Mainten
 		}
 
 		return buildPatch(authDoc)
-	})
+	}
+
+	// For static credentials (no token source), cache the patch: the result is immutable
+	// and building it on every reconcile is wasteful.
+	var patchWithRegistryAuth func() (maintenanceBasePatch, error)
+	if tokenSource != nil {
+		patchWithRegistryAuth = buildPatchWithRegistryAuth
+	} else {
+		patchWithRegistryAuth = sync.OnceValues(buildPatchWithRegistryAuth)
+	}
 
 	return &maintenanceConfigStatusControllerHelper{
 		maintenanceClientFactory: maintenanceClientFactory,

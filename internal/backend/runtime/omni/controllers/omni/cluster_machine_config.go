@@ -53,7 +53,7 @@ const ClusterMachineConfigControllerName = "ClusterMachineConfigController"
 type ClusterMachineConfigController = qtransform.QController[*omni.ClusterMachine, *omni.ClusterMachineConfig]
 
 // NewClusterMachineConfigController initializes ClusterMachineConfigController.
-func NewClusterMachineConfigController(imageFactoryHost string, registryMirrors []string, talosRegistry string, registries omnicfg.Registries) *ClusterMachineConfigController {
+func NewClusterMachineConfigController(imageFactoryHost string, registryMirrors []string, talosRegistry string, registries omnicfg.Registries, tokenSource imagefactoryauth.TokenSource) *ClusterMachineConfigController {
 	return qtransform.NewQController(
 		qtransform.Settings[*omni.ClusterMachine, *omni.ClusterMachineConfig]{
 			Name: ClusterMachineConfigControllerName,
@@ -64,7 +64,7 @@ func NewClusterMachineConfigController(imageFactoryHost string, registryMirrors 
 				return omni.NewClusterMachine(machineConfig.Metadata().ID())
 			},
 			TransformFunc: func(ctx context.Context, r controller.Reader, logger *zap.Logger, clusterMachine *omni.ClusterMachine, machineConfig *omni.ClusterMachineConfig) error {
-				return reconcileClusterMachineConfig(ctx, r, logger, clusterMachine, machineConfig, registryMirrors, imageFactoryHost, talosRegistry, registries)
+				return reconcileClusterMachineConfig(ctx, r, logger, clusterMachine, machineConfig, registryMirrors, imageFactoryHost, talosRegistry, registries, tokenSource)
 			},
 		},
 		qtransform.WithExtraMappedInput[*omni.ClusterMachineConfigPatches](
@@ -106,6 +106,7 @@ func reconcileClusterMachineConfig(
 	imageFactoryHost string,
 	talosRegistry string,
 	registries omnicfg.Registries,
+	tokenSource imagefactoryauth.TokenSource,
 ) error {
 	clusterName, ok := clusterMachine.Metadata().Labels().Get(omni.LabelCluster)
 	if !ok {
@@ -211,7 +212,13 @@ func reconcileClusterMachineConfig(
 	}
 
 	if !helpers.UpdateInputsVersions(machineConfig, inputs...) {
-		return xerrors.NewTagged[qtransform.SkipReconcileTag](errors.New("config inputs not changed"))
+		// When a token source is present the node token may have rotated even
+		// though no resource inputs changed. Skip the short-circuit so the
+		// config is regenerated with the fresh token; the configsEqual check
+		// below still prevents unnecessary writes to the resource.
+		if tokenSource == nil {
+			return xerrors.NewTagged[qtransform.SkipReconcileTag](errors.New("config inputs not changed"))
+		}
 	}
 
 	helpers.CopyLabels(clusterMachine, machineConfig, omni.LabelMachineSet, omni.LabelCluster, omni.LabelControlPlaneRole, omni.LabelWorkerRole)
@@ -240,6 +247,7 @@ func reconcileClusterMachineConfig(
 		imageFactoryHost: imageFactoryHost,
 		talosRegistry:    talosRegistry,
 		registries:       registries,
+		tokenSource:      tokenSource,
 	}
 
 	configGenOptions := make([]generate.Option, 0, len(registryMirrors))
@@ -296,10 +304,11 @@ type clusterMachineConfigControllerHelper struct {
 	registries       omnicfg.Registries
 	imageFactoryHost string
 	talosRegistry    string
+	tokenSource      imagefactoryauth.TokenSource
 }
 
 func (helper clusterMachineConfigControllerHelper) buildRegistryAuthPatch() (string, error) {
-	authDoc, err := imagefactoryauth.BuildDoc(helper.registries)
+	authDoc, err := imagefactoryauth.BuildDoc(helper.registries, helper.tokenSource)
 	if err != nil {
 		return "", fmt.Errorf("failed to build image factory registry auth doc: %w", err)
 	}

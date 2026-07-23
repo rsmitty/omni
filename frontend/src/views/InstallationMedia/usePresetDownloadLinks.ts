@@ -83,7 +83,8 @@ export function usePresetDownloadLinks(
     ),
   )
 
-  const sbcDiskImagePath = computed(() => `${imageBaseURL.value}/metal-${arch.value}.raw.xz`)
+  const sbcFilename = computed(() => `metal-${arch.value}.raw.xz`)
+  const sbcDiskImagePath = computed(() => `${imageBaseURL.value}/${sbcFilename.value}`)
 
   const pxeBootURL = computed(() =>
     selectedPlatform.value
@@ -91,29 +92,41 @@ export function usePresetDownloadLinks(
       : undefined,
   )
 
-  const platformDiskImagePath = computed(() =>
+  const platformFilename = computed(() =>
     selectedPlatform.value
-      ? `${imageBaseURL.value}/${selectedPlatform.value.metadata.id}-${arch.value}${secureBootSuffix.value}.${selectedPlatform.value.spec.disk_image_suffix}`
+      ? `${selectedPlatform.value.metadata.id}-${arch.value}${secureBootSuffix.value}.${selectedPlatform.value.spec.disk_image_suffix}`
+      : undefined,
+  )
+
+  const platformDiskImagePath = computed(() =>
+    platformFilename.value ? `${imageBaseURL.value}/${platformFilename.value}` : undefined,
+  )
+
+  const qcow2Filename = computed(() =>
+    selectedPlatform.value
+      ? `${selectedPlatform.value.metadata.id}-${arch.value}.qcow2`
       : undefined,
   )
 
   const qcow2DiskImagePath = computed(() =>
+    qcow2Filename.value ? `${imageBaseURL.value}/${qcow2Filename.value}` : undefined,
+  )
+
+  const isoFilename = computed(() =>
     selectedPlatform.value
-      ? `${imageBaseURL.value}/${selectedPlatform.value.metadata.id}-${arch.value}.qcow2`
+      ? `${selectedPlatform.value.metadata.id}-${arch.value}${secureBootSuffix.value}.iso`
       : undefined,
   )
 
   const isoPath = computed(() =>
-    selectedPlatform.value
-      ? `${imageBaseURL.value}/${selectedPlatform.value.metadata.id}-${arch.value}${secureBootSuffix.value}.iso`
-      : undefined,
+    isoFilename.value ? `${imageBaseURL.value}/${isoFilename.value}` : undefined,
   )
 
   const links = computed(() => {
     const preset = toValue(presetRef)
 
     if (preset.sbc) {
-      return [{ label: 'Disk Image', link: sbcDiskImagePath.value, withChecksums: true }]
+      return [{ label: 'Disk Image', link: sbcDiskImagePath.value, filename: sbcFilename.value, withChecksums: true }]
     }
 
     if (!selectedPlatform.value?.spec.boot_methods) {
@@ -123,6 +136,7 @@ export function usePresetDownloadLinks(
     interface DownloadLink {
       label: string
       link: string
+      filename?: string
       withChecksums?: boolean
       copyOnly?: boolean
       documentation?: {
@@ -140,6 +154,7 @@ export function usePresetDownloadLinks(
             return {
               label: 'SecureBoot Disk Image',
               link: platformDiskImagePath.value,
+              filename: platformFilename.value,
               withChecksums: true,
               documentation: isMetal.value
                 ? {
@@ -156,12 +171,12 @@ export function usePresetDownloadLinks(
 
           if (isMetal.value && qcow2DiskImagePath.value) {
             return [
-              { label: 'Disk Image (raw)', link: platformDiskImagePath.value, withChecksums: true },
-              { label: 'Disk Image (qcow2)', link: qcow2DiskImagePath.value, withChecksums: true },
+              { label: 'Disk Image (raw)', link: platformDiskImagePath.value, filename: platformFilename.value, withChecksums: true },
+              { label: 'Disk Image (qcow2)', link: qcow2DiskImagePath.value, filename: qcow2Filename.value, withChecksums: true },
             ]
           }
 
-          return { label: 'Disk Image', link: platformDiskImagePath.value, withChecksums: true }
+          return { label: 'Disk Image', link: platformDiskImagePath.value, filename: platformFilename.value, withChecksums: true }
         }
 
         case PlatformConfigSpecBootMethod.ISO: {
@@ -171,6 +186,7 @@ export function usePresetDownloadLinks(
             return {
               label: 'SecureBoot ISO',
               link: isoPath.value,
+              filename: isoFilename.value,
               withChecksums: true,
               documentation: {
                 label: 'SecureBoot documentation',
@@ -186,6 +202,7 @@ export function usePresetDownloadLinks(
           return {
             label: 'ISO',
             link: isoPath.value,
+            filename: isoFilename.value,
             withChecksums: true,
             documentation: isMetal.value
               ? {
@@ -225,5 +242,7 @@ export function usePresetDownloadLinks(
     })
   })
 
-  return { links }
+  const talosVersion = computed(() => toValue(presetRef).talos_version ?? '')
+
+  return { links, talosVersion }
 }

@@ -32,6 +32,22 @@ type serverSnifferTransport struct {
 	isEnterprise atomic.Bool
 }
 
+// bearerTransport injects an Authorization: Bearer header on every request using
+// the current token from a TokenSource.
+type bearerTransport struct {
+	wrapped http.RoundTripper
+	ts      *TokenSource
+}
+
+func (t *bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if token := t.ts.Token(); token != "" {
+		req = req.Clone(req.Context())
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	return t.wrapped.RoundTrip(req)
+}
+
 func (t *serverSnifferTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	resp, err := t.wrapped.RoundTrip(req)
 	if err == nil && t.detected.CompareAndSwap(false, true) {
@@ -49,19 +65,36 @@ type Client struct {
 	host    string
 }
 
-// NewClient creates a new image factory client.
+// NewClient creates a new image factory client with optional Basic Auth credentials.
 func NewClient(imageFactoryBaseURL, username, password string) (*Client, error) {
-	sniffer := &serverSnifferTransport{wrapped: http.DefaultTransport}
-
-	clientOptions := []client.Option{
-		client.WithClient(http.Client{Transport: sniffer, Timeout: requestTimeout}),
-	}
+	var opts []client.Option
 
 	if username != "" && password != "" {
-		clientOptions = append(clientOptions, client.WithBasicAuth(username, password))
+		opts = append(opts, client.WithBasicAuth(username, password))
 	}
 
-	factoryClient, err := client.New(imageFactoryBaseURL, clientOptions...)
+	return newClient(imageFactoryBaseURL, nil, opts...)
+}
+
+// NewClientWithTokenSource creates a new image factory client that authenticates
+// using Bearer tokens from the provided TokenSource.
+func NewClientWithTokenSource(imageFactoryBaseURL string, ts *TokenSource) (*Client, error) {
+	return newClient(imageFactoryBaseURL, ts)
+}
+
+func newClient(imageFactoryBaseURL string, ts *TokenSource, extraOpts ...client.Option) (*Client, error) {
+	sniffer := &serverSnifferTransport{wrapped: http.DefaultTransport}
+
+	var transport http.RoundTripper = sniffer
+	if ts != nil {
+		transport = &bearerTransport{wrapped: sniffer, ts: ts}
+	}
+
+	opts := append([]client.Option{
+		client.WithClient(http.Client{Transport: transport, Timeout: requestTimeout}),
+	}, extraOpts...)
+
+	factoryClient, err := client.New(imageFactoryBaseURL, opts...)
 	if err != nil {
 		return nil, err
 	}

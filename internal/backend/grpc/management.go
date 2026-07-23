@@ -1061,6 +1061,27 @@ func (s *managementServer) MachinePowerOn(ctx context.Context, request *manageme
 	return &management.MachinePowerOnResponse{}, nil
 }
 
+func (s *managementServer) GetInstallationMediaDownloadURL(ctx context.Context, req *management.GetInstallationMediaDownloadURLRequest) (*management.GetInstallationMediaDownloadURLResponse, error) {
+	if s.imageFactoryClient == nil {
+		return nil, status.Error(codes.Unimplemented, "image factory not configured")
+	}
+
+	if req.SchematicId == "" || req.TalosVersion == "" || req.Filename == "" {
+		return nil, status.Error(codes.InvalidArgument, "schematic_id, talos_version, and filename are required")
+	}
+
+	if strings.ContainsAny(req.Filename, "/\\") {
+		return nil, status.Error(codes.InvalidArgument, "filename must not contain path separators")
+	}
+
+	downloadURL, err := s.imageFactoryClient.PresignImageURL(ctx, req.SchematicId, req.TalosVersion, req.Filename)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get presigned download URL: %v", err)
+	}
+
+	return &management.GetInstallationMediaDownloadURLResponse{Url: downloadURL}, nil
+}
+
 // checkAuthorization checks if the user has the required role to perform an action on a machine.
 //
 // It also returns the authorized context and the cluster name the machine belongs to, if available.

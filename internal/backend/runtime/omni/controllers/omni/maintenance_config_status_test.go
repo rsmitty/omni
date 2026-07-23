@@ -60,7 +60,7 @@ func (suite *MachineStatusSnapshotControllerSuite) TestMaintenanceConfigStatus()
 	}
 
 	// Register the controller and start the runtime
-	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, omnicfg.Registries{})
+	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, omnicfg.Registries{}, nil)
 
 	suite.Require().NoError(suite.runtime.RegisterQController(controller))
 
@@ -190,7 +190,7 @@ func (suite *MaintenanceConfigStatusControllerSuite) TestImageFactoryRegistryAut
 	registries.SetImageFactoryUsername("factory-user")
 	registries.SetImageFactoryPassword("factory-pass")
 
-	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, registries)
+	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, registries, nil)
 
 	suite.Require().NoError(suite.runtime.RegisterQController(controller))
 
@@ -276,7 +276,7 @@ func (suite *MaintenanceConfigStatusControllerSuite) TestMachineConfigPatchPrese
 		return maintenanceClient, nil
 	}
 
-	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, omnicfg.Registries{})
+	controller := omni.NewMaintenanceConfigStatusController(maintenanceClientFactory, 123, 456, omnicfg.Registries{}, nil)
 
 	suite.Require().NoError(suite.runtime.RegisterQController(controller))
 

@@ -83,11 +83,39 @@ func Run(ctx context.Context, state *omni.State, cfg *config.Params, logger *zap
 		}
 	}
 
-	imageFactoryClient, err := imagefactory.NewClient(
-		cfg.Registries.GetImageFactoryBaseURL(),
-		cfg.Registries.GetImageFactoryUsername(),
-		cfg.Registries.GetImageFactoryPassword(),
-	)
+	// Set up the image factory client and, when Auth0 is configured, create token sources
+	// that provide Bearer credentials for the Enterprise image factory.
+	var imageFactoryClient *imagefactory.Client
+
+	var imageFactoryTokenSource *imagefactory.TokenSource
+
+	var imageFactoryNodeTokenSource *imagefactory.TokenSource
+
+	if auth0cfg := cfg.Registries.ImageFactoryAuth0; auth0cfg != nil {
+		if auth0cfg.NodeClientID == nil || auth0cfg.NodeClientSecret == nil {
+			return fmt.Errorf("imageFactoryAuth0 requires nodeClientID and nodeClientSecret: " +
+				"create a dedicated node M2M app in Auth0 with Image Factory API scope only")
+		}
+
+		imageFactoryTokenSource, err = imagefactory.NewTokenSource(*auth0cfg, logger.With(logging.Component("image_factory_auth0")))
+		if err != nil {
+			return fmt.Errorf("failed to set up image factory Auth0 token source: %w", err)
+		}
+
+		imageFactoryNodeTokenSource, err = imagefactory.NewNodeTokenSource(*auth0cfg, logger.With(logging.Component("image_factory_node_auth0")))
+		if err != nil {
+			return fmt.Errorf("failed to set up image factory node Auth0 token source: %w", err)
+		}
+
+		imageFactoryClient, err = imagefactory.NewClientWithTokenSource(cfg.Registries.GetImageFactoryBaseURL(), imageFactoryTokenSource)
+	} else {
+		imageFactoryClient, err = imagefactory.NewClient(
+			cfg.Registries.GetImageFactoryBaseURL(),
+			cfg.Registries.GetImageFactoryUsername(),
+			cfg.Registries.GetImageFactoryPassword(),
+		)
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to set up image factory client: %w", err)
 	}
@@ -111,7 +139,7 @@ func Run(ctx context.Context, state *omni.State, cfg *config.Params, logger *zap
 
 	omniRuntime, err := omni.NewRuntime(
 		cfg, talosClientFactory, dnsService, workloadProxyReconciler, resourceLogger,
-		imageFactoryClient, linkCounterDeltaCh, siderolinkEventsCh, installEventCh, state,
+		imageFactoryClient, imageFactoryNodeTokenSource, linkCounterDeltaCh, siderolinkEventsCh, installEventCh, state,
 		prometheus.DefaultRegisterer, discoveryClientCache, kubernetesRuntime, talosRuntime,
 		lifecycleManager, logger.With(logging.Component("omni_runtime")),
 	)

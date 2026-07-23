@@ -198,6 +198,45 @@
           "x-cli-flag": "image-factory-password",
           "type": "string"
         },
+        "imageFactoryAuth0": {
+          "description": "ImageFactoryAuth0 configures Auth0 M2M authentication for the Image Factory Enterprise service.",
+          "type": "object",
+          "required": ["domain", "clientID", "clientSecret", "audience", "orgID"],
+          "properties": {
+            "domain": {
+              "type": "string",
+              "description": "Domain is the Auth0 tenant domain, e.g. factory-tenant.us.auth0.com."
+            },
+            "clientID": {
+              "type": "string",
+              "description": "ClientID is the client ID of the Omni M2M application in the image factory Auth0 tenant."
+            },
+            "clientSecret": {
+              "type": "string",
+              "description": "ClientSecret is the client secret for the Omni M2M application."
+            },
+            "audience": {
+              "type": "string",
+              "description": "Audience is the Image Factory API audience identifier."
+            },
+            "orgID": {
+              "type": "string",
+              "description": "OrgID is the Auth0 org_id for this Omni instance."
+            },
+            "nodeClientID": {
+              "type": "string",
+              "description": "NodeClientID is the client ID of the node M2M application in Auth0. Node tokens have Image Factory API scope only (no Management API). Pre-create this app in Auth0 with a long token lifetime (e.g. 30 days) to minimise machine config churn. If omitted, the Omni M2M token is used for node credentials (not recommended for production)."
+            },
+            "nodeClientSecret": {
+              "type": "string",
+              "description": "NodeClientSecret is the client secret for the node M2M application."
+            }
+          },
+          "dependentRequired": {
+            "nodeClientID": ["nodeClientSecret"],
+            "nodeClientSecret": ["nodeClientID"]
+          }
+        },
         "mirrors": {
           "description": "Mirrors is the list of container image registry mirrors. Used mainly for the development purposes. It must be in the format: <registry host>=<mirror URL>",
           "x-cli-flag": "registry-mirror",

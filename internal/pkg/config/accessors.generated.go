@@ -1128,6 +1128,17 @@ func (s *Posthog) SetApiKey(v string) {
 	s.ApiKey = &v
 }
 
+func (s *Registries) GetImageFactoryAuth0() RegistriesImageFactoryAuth0 {
+	if s == nil || s.ImageFactoryAuth0 == nil {
+		return *new(RegistriesImageFactoryAuth0)
+	}
+	return *s.ImageFactoryAuth0
+}
+
+func (s *Registries) SetImageFactoryAuth0(v RegistriesImageFactoryAuth0) {
+	s.ImageFactoryAuth0 = &v
+}
+
 func (s *Registries) GetImageFactoryBaseURL() string {
 	if s == nil || s.ImageFactoryBaseURL == nil {
 		return *new(string)
@@ -1192,6 +1203,28 @@ func (s *Registries) GetTalos() string {
 
 func (s *Registries) SetTalos(v string) {
 	s.Talos = &v
+}
+
+func (s *RegistriesImageFactoryAuth0) GetNodeClientID() string {
+	if s == nil || s.NodeClientID == nil {
+		return *new(string)
+	}
+	return *s.NodeClientID
+}
+
+func (s *RegistriesImageFactoryAuth0) SetNodeClientID(v string) {
+	s.NodeClientID = &v
+}
+
+func (s *RegistriesImageFactoryAuth0) GetNodeClientSecret() string {
+	if s == nil || s.NodeClientSecret == nil {
+		return *new(string)
+	}
+	return *s.NodeClientSecret
+}
+
+func (s *RegistriesImageFactoryAuth0) SetNodeClientSecret(v string) {
+	s.NodeClientSecret = &v
 }
 
 func (s *ResourceLoggerConfig) GetLogLevel() string {

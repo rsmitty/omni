@@ -399,4 +399,20 @@ service ManagementService {
   rpc DestroyUser(DestroyUserRequest) returns (google.protobuf.Empty);
   rpc MachinePowerOff(MachinePowerOffRequest) returns (MachinePowerOffResponse);
   rpc MachinePowerOn(MachinePowerOnRequest) returns (MachinePowerOnResponse);
+  rpc GetInstallationMediaDownloadURL(GetInstallationMediaDownloadURLRequest) returns (GetInstallationMediaDownloadURLResponse);
+}
+
+message GetInstallationMediaDownloadURLRequest {
+  // SchematicID is the schematic identifier.
+  string schematic_id = 1;
+  // TalosVersion is the Talos version string, e.g. "v1.10.0".
+  string talos_version = 2;
+  // Filename is the image filename, e.g. "metal-amd64.iso".
+  string filename = 3;
+}
+
+message GetInstallationMediaDownloadURLResponse {
+  // URL is a presigned factory image URL (HMAC-signed, short-lived, no credentials embedded).
+  // Navigate the browser directly to this URL; no Omni proxy is involved.
+  string url = 1;
 }

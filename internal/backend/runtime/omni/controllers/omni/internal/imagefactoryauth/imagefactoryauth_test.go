@@ -21,7 +21,7 @@ func TestBuildDoc(t *testing.T) {
 	t.Run("no credentials returns nil", func(t *testing.T) {
 		t.Parallel()
 
-		doc, err := imagefactoryauth.BuildDoc(omnicfg.Registries{})
+		doc, err := imagefactoryauth.BuildDoc(omnicfg.Registries{}, nil)
 		require.NoError(t, err)
 		assert.Nil(t, doc)
 	})
@@ -32,7 +32,7 @@ func TestBuildDoc(t *testing.T) {
 		registries := omnicfg.Registries{}
 		registries.SetImageFactoryUsername("user")
 
-		doc, err := imagefactoryauth.BuildDoc(registries)
+		doc, err := imagefactoryauth.BuildDoc(registries, nil)
 		require.NoError(t, err)
 		assert.Nil(t, doc)
 	})
@@ -45,7 +45,7 @@ func TestBuildDoc(t *testing.T) {
 		registries.SetImageFactoryUsername("user")
 		registries.SetImageFactoryPassword("pass")
 
-		doc, err := imagefactoryauth.BuildDoc(registries)
+		doc, err := imagefactoryauth.BuildDoc(registries, nil)
 		require.NoError(t, err)
 		require.NotNil(t, doc)
 

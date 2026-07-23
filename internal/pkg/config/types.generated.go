@@ -598,6 +598,10 @@ type RateLimits struct {
 }
 
 type Registries struct {
+	// ImageFactoryAuth0 configures Auth0 M2M authentication for the Image Factory
+	// Enterprise service.
+	ImageFactoryAuth0 *RegistriesImageFactoryAuth0 `json:"imageFactoryAuth0,omitempty,omitzero" yaml:"imageFactoryAuth0,omitempty"`
+
 	// ImageFactoryBaseURL is the base URL of the Image Factory service used to build
 	// custom machine images.
 	ImageFactoryBaseURL *string `json:"imageFactoryBaseURL" yaml:"imageFactoryBaseURL"`
@@ -623,6 +627,36 @@ type Registries struct {
 
 	// Talos is the Talos installer registry configuration.
 	Talos *string `json:"talos" yaml:"talos"`
+}
+
+// ImageFactoryAuth0 configures Auth0 M2M authentication for the Image Factory
+// Enterprise service.
+type RegistriesImageFactoryAuth0 struct {
+	// Audience is the Image Factory API audience identifier.
+	Audience string `json:"audience" yaml:"audience"`
+
+	// ClientID is the client ID of the Omni M2M application in the image factory
+	// Auth0 tenant.
+	ClientID string `json:"clientID" yaml:"clientID"`
+
+	// ClientSecret is the client secret for the Omni M2M application.
+	ClientSecret string `json:"clientSecret" yaml:"clientSecret"`
+
+	// Domain is the Auth0 tenant domain, e.g. factory-tenant.us.auth0.com.
+	Domain string `json:"domain" yaml:"domain"`
+
+	// NodeClientID is the client ID of the node M2M application in Auth0. Node tokens
+	// have Image Factory API scope only (no Management API). Pre-create this app in
+	// Auth0 with a long token lifetime (e.g. 30 days) to minimise machine config
+	// churn. If omitted, the Omni M2M token is used for node credentials (not
+	// recommended for production).
+	NodeClientID *string `json:"nodeClientID,omitempty,omitzero" yaml:"nodeClientID,omitempty"`
+
+	// NodeClientSecret is the client secret for the node M2M application.
+	NodeClientSecret *string `json:"nodeClientSecret,omitempty,omitzero" yaml:"nodeClientSecret,omitempty"`
+
+	// OrgID is the Auth0 org_id for this Omni instance.
+	OrgID string `json:"orgID" yaml:"orgID"`
 }
 
 type ResourceLoggerConfig struct {

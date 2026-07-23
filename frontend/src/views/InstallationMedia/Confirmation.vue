@@ -37,6 +37,7 @@ import { useResourceGet } from '@/methods/useResourceGet'
 import { useTalosctlDownloads } from '@/methods/useTalosctlDownloads'
 import { formStateToPreset } from '@/views/InstallationMedia/formStateToPreset'
 import { type FormState, resolveTalosVersion } from '@/views/InstallationMedia/useFormState'
+import { useInstallationMediaDownload } from '@/views/InstallationMedia/useInstallationMediaDownload'
 import { usePresetDownloadLinks } from '@/views/InstallationMedia/usePresetDownloadLinks'
 import { usePresetSchematic } from '@/views/InstallationMedia/usePresetSchematic'
 import Scan from '@/views/InstallationMedia/vulnerabilities/Scan.vue'
@@ -133,7 +134,8 @@ const resolvedPreset = computed(() => ({
 const { schematic, schematicLoading, schematicError } = usePresetSchematic(resolvedPreset)
 const schematicId = computed(() => schematic.value?.id ?? '')
 
-const { links } = usePresetDownloadLinks(schematicId, resolvedPreset)
+const { links, talosVersion } = usePresetDownloadLinks(schematicId, resolvedPreset)
+const { useTokenAuth, downloadViaToken, isDownloading } = useInstallationMediaDownload()
 
 const factoryHost = computed(() =>
   imageFactoryBaseURL.value ? new URL(imageFactoryBaseURL.value).host : '',
@@ -225,7 +227,7 @@ const VEXBaseURL = computed(() =>
 
     <dl class="flex flex-col gap-2">
       <template
-        v-for="{ label, link, documentation, withChecksums, copyOnly } in links"
+        v-for="{ label, link, filename, documentation, withChecksums, copyOnly } in links"
         :key="link"
       >
         <dt class="font-medium text-naturals-n14 not-first-of-type:mt-2">
@@ -250,6 +252,18 @@ const VEXBaseURL = computed(() =>
             <CopyButton :aria-label="`Copy ${label} link`" :text="link" />
           </template>
 
+          <!-- Token-based download (Auth0 enterprise): click fetches a presigned URL from factory -->
+          <a
+            v-else-if="useTokenAuth()"
+            class="link-primary"
+            :href="link"
+            :aria-busy="filename ? isDownloading(schematicId, talosVersion, filename) : false"
+            @click.prevent="filename && downloadViaToken(schematicId, talosVersion, filename)"
+          >
+            {{ link }}
+          </a>
+
+          <!-- Basic-auth download: plain anchor with full URL -->
           <a v-else class="link-primary" :href="link" target="_blank" rel="noopener noreferrer">
             {{ link }}
           </a>
@@ -260,6 +274,17 @@ const VEXBaseURL = computed(() =>
               description="Checksums are only available through the Talos Linux Enterprise Image Factory."
             >
               <TButton
+                v-if="useTokenAuth()"
+                :disabled="!isEnterpriseFactory || !filename"
+                size="sm"
+                icon="arrow-down-tray"
+                icon-position="left"
+                @click="filename && downloadViaToken(schematicId, talosVersion, `${filename}.sha256`)"
+              >
+                sha256
+              </TButton>
+              <TButton
+                v-else
                 is="a"
                 :disabled="!isEnterpriseFactory"
                 :href="`${link}.sha256`"
@@ -278,6 +303,17 @@ const VEXBaseURL = computed(() =>
               description="Checksums are only available through the Talos Linux Enterprise Image Factory."
             >
               <TButton
+                v-if="useTokenAuth()"
+                :disabled="!isEnterpriseFactory || !filename"
+                size="sm"
+                icon="arrow-down-tray"
+                icon-position="left"
+                @click="filename && downloadViaToken(schematicId, talosVersion, `${filename}.sha512`)"
+              >
+                sha512
+              </TButton>
+              <TButton
+                v-else
                 is="a"
                 :disabled="!isEnterpriseFactory"
                 :href="`${link}.sha512`"

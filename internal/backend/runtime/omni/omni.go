@@ -105,7 +105,7 @@ type Runtime struct {
 //
 //nolint:maintidx
 func NewRuntime(cfg *config.Params, talosClientFactory *talos.ClientFactory, dnsService *dns.Service, workloadProxyReconciler *workloadproxy.Reconciler,
-	resourceLogger *resourcelogger.Logger, imageFactoryClient *imagefactory.Client, linkCounterDeltaCh <-chan siderolink.LinkCounterDeltas,
+	resourceLogger *resourcelogger.Logger, imageFactoryClient *imagefactory.Client, imageFactoryNodeTokenSource *imagefactory.TokenSource, linkCounterDeltaCh <-chan siderolink.LinkCounterDeltas,
 	siderolinkEventsCh <-chan *omni.MachineStatusSnapshot, installEventCh <-chan cosiresource.ID, st *State, metricsRegistry prometheus.Registerer,
 	discoveryClientCache omnictrl.DiscoveryClientCache, kubernetesRuntime omnictrl.KubernetesRuntime, talosRuntime omnictrl.TalosClientGetter,
 	lifecycleManager *lifecycle.Manager, logger *zap.Logger,
@@ -220,6 +220,7 @@ func NewRuntime(cfg *config.Params, talosClientFactory *talos.ClientFactory, dns
 			cfg.Registries.Mirrors,
 			cfg.Registries.GetTalos(),
 			cfg.Registries,
+			imageFactoryNodeTokenSource,
 		),
 		omnictrl.NewClusterMachineTeardownController(omnictrl.NewGetKubernetesClientFunc(kubernetesRuntime)),
 		omnictrl.NewMachineConfigGenOptionsController(),
@@ -268,6 +269,7 @@ func NewRuntime(cfg *config.Params, talosClientFactory *talos.ClientFactory, dns
 			cfg.Services.Siderolink.GetEventSinkPort(),
 			cfg.Services.Siderolink.GetLogServerPort(),
 			cfg.Registries,
+			imageFactoryNodeTokenSource,
 		),
 		omnictrl.NewDiscoveryAffiliateDeleteTaskController(discoveryClientCache),
 		omnictrl.NewServiceAccountStatusController(),

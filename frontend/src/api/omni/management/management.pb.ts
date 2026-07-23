@@ -352,6 +352,16 @@ export type ListUsersResponse = {
   users?: ListUsersResponseUser[]
 }
 
+export type GetInstallationMediaDownloadURLRequest = {
+  schematic_id?: string
+  talos_version?: string
+  filename?: string
+}
+
+export type GetInstallationMediaDownloadURLResponse = {
+  url?: string
+}
+
 export class ManagementService {
   static Kubeconfig(req: KubeconfigRequest, ...options: fm.fetchOption[]): Promise<KubeconfigResponse> {
     return fm.fetchReq<KubeconfigRequest, KubeconfigResponse>("POST", `/management.ManagementService/Kubeconfig`, req, ...options)
@@ -433,5 +443,8 @@ export class ManagementService {
   }
   static MachinePowerOn(req: MachinePowerOnRequest, ...options: fm.fetchOption[]): Promise<MachinePowerOnResponse> {
     return fm.fetchReq<MachinePowerOnRequest, MachinePowerOnResponse>("POST", `/management.ManagementService/MachinePowerOn`, req, ...options)
+  }
+  static GetInstallationMediaDownloadURL(req: GetInstallationMediaDownloadURLRequest, ...options: fm.fetchOption[]): Promise<GetInstallationMediaDownloadURLResponse> {
+    return fm.fetchReq<GetInstallationMediaDownloadURLRequest, GetInstallationMediaDownloadURLResponse>("POST", `/management.ManagementService/GetInstallationMediaDownloadURL`, req, ...options)
   }
 }

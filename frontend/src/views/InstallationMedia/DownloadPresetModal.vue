@@ -30,6 +30,7 @@ import Tooltip from '@/components/Tooltip/Tooltip.vue'
 import { useResourceGet } from '@/methods/useResourceGet'
 import { useResourceWatch } from '@/methods/useResourceWatch'
 import { resolveTalosVersion } from '@/views/InstallationMedia/useFormState'
+import { useInstallationMediaDownload } from '@/views/InstallationMedia/useInstallationMediaDownload'
 import { usePresetDownloadLinks } from '@/views/InstallationMedia/usePresetDownloadLinks'
 import { usePresetSchematic } from '@/views/InstallationMedia/usePresetSchematic'
 
@@ -145,7 +146,8 @@ const resolvedPreset = computed<InstallationMediaConfigSpec>(() => {
 const schematicId = computed(() => schematic.value?.id ?? '')
 
 const { schematic } = usePresetSchematic(resolvedPreset)
-const { links } = usePresetDownloadLinks(schematicId, resolvedPreset)
+const { links, talosVersion } = usePresetDownloadLinks(schematicId, resolvedPreset)
+const { useTokenAuth, downloadViaToken, isDownloading, downloadError } = useInstallationMediaDownload()
 </script>
 
 <template>
@@ -185,22 +187,35 @@ const { links } = usePresetDownloadLinks(schematicId, resolvedPreset)
         </template>
 
         <template #body>
-          <TableRow v-for="{ label, link } in links" :key="link">
+          <TableRow v-for="{ label, link, filename, copyOnly } in links" :key="label">
             <TableCell>{{ label }}</TableCell>
 
             <TableCell class="w-0">
               <div class="flex gap-1">
-                <Tooltip description="Download">
-                  <IconButton
-                    is="a"
-                    :href="link"
-                    :disabled="!schematicId"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="download"
-                    icon="arrow-down-tray"
-                  />
-                </Tooltip>
+                <template v-if="!copyOnly">
+                  <!-- Token-based download (Auth0 enterprise): fetches presigned URL -->
+                  <Tooltip v-if="useTokenAuth()" description="Download">
+                    <IconButton
+                      :disabled="!schematicId || !filename || isDownloading(schematicId, talosVersion, filename!)"
+                      aria-label="download"
+                      icon="arrow-down-tray"
+                      @click="filename && downloadViaToken(schematicId, talosVersion, filename)"
+                    />
+                  </Tooltip>
+
+                  <!-- Basic-auth download: plain anchor -->
+                  <Tooltip v-else description="Download">
+                    <IconButton
+                      is="a"
+                      :href="link"
+                      :disabled="!schematicId"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="download"
+                      icon="arrow-down-tray"
+                    />
+                  </Tooltip>
+                </template>
 
                 <Tooltip description="Copy link">
                   <IconButton
@@ -212,6 +227,10 @@ const { links } = usePresetDownloadLinks(schematicId, resolvedPreset)
                 </Tooltip>
               </div>
             </TableCell>
+          </TableRow>
+
+          <TableRow v-if="downloadError">
+            <TableCell colspan="2" class="text-red-500 text-sm">{{ downloadError }}</TableCell>
           </TableRow>
         </template>
       </TableRoot>

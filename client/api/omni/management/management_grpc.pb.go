@@ -22,33 +22,34 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ManagementService_Kubeconfig_FullMethodName                 = "/management.ManagementService/Kubeconfig"
-	ManagementService_Talosconfig_FullMethodName                = "/management.ManagementService/Talosconfig"
-	ManagementService_Omniconfig_FullMethodName                 = "/management.ManagementService/Omniconfig"
-	ManagementService_MachineLogs_FullMethodName                = "/management.ManagementService/MachineLogs"
-	ManagementService_ValidateConfig_FullMethodName             = "/management.ManagementService/ValidateConfig"
-	ManagementService_ValidateJSONSchema_FullMethodName         = "/management.ManagementService/ValidateJSONSchema"
-	ManagementService_CreateServiceAccount_FullMethodName       = "/management.ManagementService/CreateServiceAccount"
-	ManagementService_RenewServiceAccount_FullMethodName        = "/management.ManagementService/RenewServiceAccount"
-	ManagementService_ListServiceAccounts_FullMethodName        = "/management.ManagementService/ListServiceAccounts"
-	ManagementService_DestroyServiceAccount_FullMethodName      = "/management.ManagementService/DestroyServiceAccount"
-	ManagementService_KubernetesUpgradePreChecks_FullMethodName = "/management.ManagementService/KubernetesUpgradePreChecks"
-	ManagementService_KubernetesSyncManifests_FullMethodName    = "/management.ManagementService/KubernetesSyncManifests"
-	ManagementService_CreateSchematic_FullMethodName            = "/management.ManagementService/CreateSchematic"
-	ManagementService_CreateSchematicFromRaw_FullMethodName     = "/management.ManagementService/CreateSchematicFromRaw"
-	ManagementService_GetSupportBundle_FullMethodName           = "/management.ManagementService/GetSupportBundle"
-	ManagementService_ReadAuditLog_FullMethodName               = "/management.ManagementService/ReadAuditLog"
-	ManagementService_MaintenanceUpgrade_FullMethodName         = "/management.ManagementService/MaintenanceUpgrade"
-	ManagementService_MaintenanceLifecycle_FullMethodName       = "/management.ManagementService/MaintenanceLifecycle"
-	ManagementService_GetMachineJoinConfig_FullMethodName       = "/management.ManagementService/GetMachineJoinConfig"
-	ManagementService_CreateJoinToken_FullMethodName            = "/management.ManagementService/CreateJoinToken"
-	ManagementService_ResetNodeUniqueToken_FullMethodName       = "/management.ManagementService/ResetNodeUniqueToken"
-	ManagementService_CreateUser_FullMethodName                 = "/management.ManagementService/CreateUser"
-	ManagementService_ListUsers_FullMethodName                  = "/management.ManagementService/ListUsers"
-	ManagementService_UpdateUser_FullMethodName                 = "/management.ManagementService/UpdateUser"
-	ManagementService_DestroyUser_FullMethodName                = "/management.ManagementService/DestroyUser"
-	ManagementService_MachinePowerOff_FullMethodName            = "/management.ManagementService/MachinePowerOff"
-	ManagementService_MachinePowerOn_FullMethodName             = "/management.ManagementService/MachinePowerOn"
+	ManagementService_Kubeconfig_FullMethodName                      = "/management.ManagementService/Kubeconfig"
+	ManagementService_Talosconfig_FullMethodName                     = "/management.ManagementService/Talosconfig"
+	ManagementService_Omniconfig_FullMethodName                      = "/management.ManagementService/Omniconfig"
+	ManagementService_MachineLogs_FullMethodName                     = "/management.ManagementService/MachineLogs"
+	ManagementService_ValidateConfig_FullMethodName                  = "/management.ManagementService/ValidateConfig"
+	ManagementService_ValidateJSONSchema_FullMethodName              = "/management.ManagementService/ValidateJSONSchema"
+	ManagementService_CreateServiceAccount_FullMethodName            = "/management.ManagementService/CreateServiceAccount"
+	ManagementService_RenewServiceAccount_FullMethodName             = "/management.ManagementService/RenewServiceAccount"
+	ManagementService_ListServiceAccounts_FullMethodName             = "/management.ManagementService/ListServiceAccounts"
+	ManagementService_DestroyServiceAccount_FullMethodName           = "/management.ManagementService/DestroyServiceAccount"
+	ManagementService_KubernetesUpgradePreChecks_FullMethodName      = "/management.ManagementService/KubernetesUpgradePreChecks"
+	ManagementService_KubernetesSyncManifests_FullMethodName         = "/management.ManagementService/KubernetesSyncManifests"
+	ManagementService_CreateSchematic_FullMethodName                 = "/management.ManagementService/CreateSchematic"
+	ManagementService_CreateSchematicFromRaw_FullMethodName          = "/management.ManagementService/CreateSchematicFromRaw"
+	ManagementService_GetSupportBundle_FullMethodName                = "/management.ManagementService/GetSupportBundle"
+	ManagementService_ReadAuditLog_FullMethodName                    = "/management.ManagementService/ReadAuditLog"
+	ManagementService_MaintenanceUpgrade_FullMethodName              = "/management.ManagementService/MaintenanceUpgrade"
+	ManagementService_MaintenanceLifecycle_FullMethodName            = "/management.ManagementService/MaintenanceLifecycle"
+	ManagementService_GetMachineJoinConfig_FullMethodName            = "/management.ManagementService/GetMachineJoinConfig"
+	ManagementService_CreateJoinToken_FullMethodName                 = "/management.ManagementService/CreateJoinToken"
+	ManagementService_ResetNodeUniqueToken_FullMethodName            = "/management.ManagementService/ResetNodeUniqueToken"
+	ManagementService_CreateUser_FullMethodName                      = "/management.ManagementService/CreateUser"
+	ManagementService_ListUsers_FullMethodName                       = "/management.ManagementService/ListUsers"
+	ManagementService_UpdateUser_FullMethodName                      = "/management.ManagementService/UpdateUser"
+	ManagementService_DestroyUser_FullMethodName                     = "/management.ManagementService/DestroyUser"
+	ManagementService_MachinePowerOff_FullMethodName                 = "/management.ManagementService/MachinePowerOff"
+	ManagementService_MachinePowerOn_FullMethodName                  = "/management.ManagementService/MachinePowerOn"
+	ManagementService_GetInstallationMediaDownloadURL_FullMethodName = "/management.ManagementService/GetInstallationMediaDownloadURL"
 )
 
 // ManagementServiceClient is the client API for ManagementService service.
@@ -82,6 +83,7 @@ type ManagementServiceClient interface {
 	DestroyUser(ctx context.Context, in *DestroyUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	MachinePowerOff(ctx context.Context, in *MachinePowerOffRequest, opts ...grpc.CallOption) (*MachinePowerOffResponse, error)
 	MachinePowerOn(ctx context.Context, in *MachinePowerOnRequest, opts ...grpc.CallOption) (*MachinePowerOnResponse, error)
+	GetInstallationMediaDownloadURL(ctx context.Context, in *GetInstallationMediaDownloadURLRequest, opts ...grpc.CallOption) (*GetInstallationMediaDownloadURLResponse, error)
 }
 
 type managementServiceClient struct {
@@ -407,6 +409,16 @@ func (c *managementServiceClient) MachinePowerOn(ctx context.Context, in *Machin
 	return out, nil
 }
 
+func (c *managementServiceClient) GetInstallationMediaDownloadURL(ctx context.Context, in *GetInstallationMediaDownloadURLRequest, opts ...grpc.CallOption) (*GetInstallationMediaDownloadURLResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInstallationMediaDownloadURLResponse)
+	err := c.cc.Invoke(ctx, ManagementService_GetInstallationMediaDownloadURL_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ManagementServiceServer is the server API for ManagementService service.
 // All implementations must embed UnimplementedManagementServiceServer
 // for forward compatibility.
@@ -438,6 +450,7 @@ type ManagementServiceServer interface {
 	DestroyUser(context.Context, *DestroyUserRequest) (*emptypb.Empty, error)
 	MachinePowerOff(context.Context, *MachinePowerOffRequest) (*MachinePowerOffResponse, error)
 	MachinePowerOn(context.Context, *MachinePowerOnRequest) (*MachinePowerOnResponse, error)
+	GetInstallationMediaDownloadURL(context.Context, *GetInstallationMediaDownloadURLRequest) (*GetInstallationMediaDownloadURLResponse, error)
 	mustEmbedUnimplementedManagementServiceServer()
 }
 
@@ -528,6 +541,9 @@ func (UnimplementedManagementServiceServer) MachinePowerOff(context.Context, *Ma
 }
 func (UnimplementedManagementServiceServer) MachinePowerOn(context.Context, *MachinePowerOnRequest) (*MachinePowerOnResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MachinePowerOn not implemented")
+}
+func (UnimplementedManagementServiceServer) GetInstallationMediaDownloadURL(context.Context, *GetInstallationMediaDownloadURLRequest) (*GetInstallationMediaDownloadURLResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInstallationMediaDownloadURL not implemented")
 }
 func (UnimplementedManagementServiceServer) mustEmbedUnimplementedManagementServiceServer() {}
 func (UnimplementedManagementServiceServer) testEmbeddedByValue()                           {}
@@ -1001,6 +1017,24 @@ func _ManagementService_MachinePowerOn_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ManagementService_GetInstallationMediaDownloadURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInstallationMediaDownloadURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ManagementServiceServer).GetInstallationMediaDownloadURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ManagementService_GetInstallationMediaDownloadURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ManagementServiceServer).GetInstallationMediaDownloadURL(ctx, req.(*GetInstallationMediaDownloadURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ManagementService_ServiceDesc is the grpc.ServiceDesc for ManagementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1095,6 +1129,10 @@ var ManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MachinePowerOn",
 			Handler:    _ManagementService_MachinePowerOn_Handler,
+		},
+		{
+			MethodName: "GetInstallationMediaDownloadURL",
+			Handler:    _ManagementService_GetInstallationMediaDownloadURL_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
